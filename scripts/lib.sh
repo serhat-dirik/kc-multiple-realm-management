@@ -9,13 +9,28 @@
 # Container runtime. Podman is preferred because it needs no daemon and no
 # licence, but Docker works identically - both implement `compose` and `exec`.
 # Override explicitly with CRI=docker (or CRI=podman) if both are installed.
+#
+# The install locations matter: podman's macOS pkginstaller drops the binary in
+# /opt/podman/bin, which is added to PATH by a *login* shell profile only. Run
+# these scripts from cron, CI, or any non-login shell and podman looks missing
+# even though it is installed. Probe the usual places before giving up.
+for d in /opt/podman/bin /opt/homebrew/bin /usr/local/bin \
+         /Applications/Docker.app/Contents/Resources/bin; do
+  case ":$PATH:" in
+    *":$d:"*) ;;
+    *) [ -d "$d" ] && PATH="$PATH:$d" ;;
+  esac
+done
+export PATH
+
 if [ -z "${CRI:-}" ]; then
   if command -v podman >/dev/null 2>&1; then
     CRI=podman
   elif command -v docker >/dev/null 2>&1; then
     CRI=docker
   else
-    echo "ERROR: neither podman nor docker found on PATH." >&2
+    echo "ERROR: neither podman nor docker found." >&2
+    echo "  Looked on PATH and in /opt/podman/bin, /opt/homebrew/bin, /usr/local/bin." >&2
     echo "  Install one of them - see the Prerequisites section of README.md" >&2
     exit 1
   fi
