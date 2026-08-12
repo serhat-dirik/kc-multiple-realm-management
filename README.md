@@ -72,12 +72,35 @@ a single client serve all of them.
 | Choosing the organisation | a dropdown in the app | Keycloak matches the user's email domain |
 | Adding an organisation | new client, new secret, config change, redeploy | a Keycloak change only |
 | Isolation | absolute — nothing shared | strong, but the hub keeps a linked shadow identity |
+| Central authorization | none — each organisation's realm is the only source | a layer you own, which organisations cannot change |
 
 **App 1** (<http://localhost:3001>) implements Option A.
 **App 2** (<http://localhost:3002>) implements Option B.
 
 Both authenticate the *same five organisations*, so you can sign in as the same
 person through each and compare what comes back.
+
+### A control layer you own
+
+That last row is worth drawing out. The hub realm is administered by you alone,
+so roles assigned there cannot be granted, altered or removed by any
+organisation's admin. It gives you somewhere to express *what a person may do in
+your application*, kept separate from *who that person is*, which each
+organisation continues to own.
+
+Under Option A there is no such place. The app trusts whatever the organisation's
+realm asserts, so an org admin can grant their own users any group or role and
+your application will honour it.
+
+The natural default is least privilege: a first-time user arrives with only what
+the identity provider mappers assert — authenticated, and nothing more — until
+someone grants them something centrally. Note that a central grant must live on a
+realm role or a group **no IdP mapper manages**; mappers running in sync mode
+`FORCE` treat the organisation as authoritative and will strip anything the
+source claim does not assert.
+
+**This demo deliberately implements no role model** — it only shows that the
+layer exists and that claims arrive intact for you to build on.
 
 ---
 
