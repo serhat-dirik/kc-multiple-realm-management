@@ -579,3 +579,13 @@ Things that cost real debugging time, recorded so they do not cost it twice.
 - **The lldap `admin` account appears in org-b's realm.** That is a real directory
   service account being federated, and it reinforces step 4: the organisation's
   realm sees everything in the directory, the umbrella sees only who signed in.
+
+---
+
+## Licence
+
+Apache License 2.0 — see [LICENSE](LICENSE).
+
+This is a demonstration project. The credentials, client secrets and signing
+material in it are deliberately weak and public; none of it is suitable for any
+environment that matters.
