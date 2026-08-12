@@ -78,7 +78,9 @@ ensure_runtime() {
 
   printf '  podman machine is not reachable, starting it'
   podman machine start >/dev/null 2>&1
-  for _ in $(seq 1 40); do
+  # A cold VM start can take well over a minute on a loaded machine; 80s was
+  # observed to be too short.
+  for _ in $(seq 1 90); do
     if podman ps >/dev/null 2>&1; then printf ' ready\n'; return 0; fi
     printf '.'; sleep 2
   done
