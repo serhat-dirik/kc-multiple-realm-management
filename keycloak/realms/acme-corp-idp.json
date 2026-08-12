@@ -1,0 +1,97 @@
+{
+  "realm": "acme-corp-idp",
+  "enabled": true,
+  "displayName": "Acme Corp IdP",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Acme Corp IdP</span></div>",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+
+  "groups": [
+    { "name": "officers" },
+    { "name": "admins" }
+  ],
+
+  "clients": [
+    {
+      "clientId": "org-c-broker",
+      "name": "Org-C realm brokering into this corporate IdP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "acme-org-c-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/realms/org-c/broker/acme-corp/endpoint",
+        "http://localhost:8080/realms/org-c/broker/acme-corp/endpoint/*"
+      ],
+      "attributes": { "post.logout.redirect.uris": "+" },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        },
+        {
+          "name": "entra_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "entra_id",
+            "claim.name": "entra_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "user-1",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-1@orgc.example",
+      "firstName": "User",
+      "lastName": "One",
+      "attributes": { "entra_id": ["c1000000-aaaa-4bbb-8ccc-000000000001"] },
+      "credentials": [{ "type": "password", "value": "user-1", "temporary": false }],
+      "groups": ["/officers"]
+    },
+    {
+      "username": "user-2",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-2@orgc.example",
+      "firstName": "User",
+      "lastName": "Two",
+      "attributes": { "entra_id": ["c1000000-aaaa-4bbb-8ccc-000000000002"] },
+      "credentials": [{ "type": "password", "value": "user-2", "temporary": false }],
+      "groups": ["/officers"]
+    },
+    {
+      "username": "user-3",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-3@orgc.example",
+      "firstName": "User",
+      "lastName": "Three",
+      "attributes": { "entra_id": ["c1000000-aaaa-4bbb-8ccc-000000000003"] },
+      "credentials": [{ "type": "password", "value": "user-3", "temporary": false }],
+      "groups": ["/admins"]
+    }
+  ]
+}

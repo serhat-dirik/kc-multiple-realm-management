@@ -1,0 +1,529 @@
+{
+  "realm": "umbrella",
+  "enabled": true,
+  "displayName": "Umbrella",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Umbrella Hub</span></div>",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+  "organizationsEnabled": true,
+  "groups": [
+    {
+      "name": "officers"
+    },
+    {
+      "name": "admins"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "app2-portal",
+      "name": "App 2 (Option B) - umbrella login",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "app2-umbrella-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3002/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3002"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3002/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        },
+        {
+          "name": "entra_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "entra_id",
+            "claim.name": "entra_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [],
+  "identityProviders": [
+    {
+      "alias": "org-a",
+      "displayName": "Org-A",
+      "providerId": "oidc",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "umbrella-broker",
+        "clientSecret": "broker-org-a-secret",
+        "authorizationUrl": "http://localhost:8080/realms/org-a/protocol/openid-connect/auth",
+        "tokenUrl": "http://localhost:8080/realms/org-a/protocol/openid-connect/token",
+        "jwksUrl": "http://localhost:8080/realms/org-a/protocol/openid-connect/certs",
+        "userInfoUrl": "http://localhost:8080/realms/org-a/protocol/openid-connect/userinfo",
+        "logoutUrl": "http://localhost:8080/realms/org-a/protocol/openid-connect/logout",
+        "issuer": "http://localhost:8080/realms/org-a",
+        "useJwksUrl": "true",
+        "clientAuthMethod": "client_secret_post",
+        "defaultScope": "openid profile email",
+        "syncMode": "FORCE",
+        "hideOnLoginPage": "false",
+        "backchannelSupported": "false",
+        "kc.org.domain": "orga.example",
+        "kc.org.broker.redirect.mode.email-matches": "true"
+      }
+    },
+    {
+      "alias": "org-b",
+      "displayName": "Org-B",
+      "providerId": "oidc",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "umbrella-broker",
+        "clientSecret": "broker-org-b-secret",
+        "authorizationUrl": "http://localhost:8080/realms/org-b/protocol/openid-connect/auth",
+        "tokenUrl": "http://localhost:8080/realms/org-b/protocol/openid-connect/token",
+        "jwksUrl": "http://localhost:8080/realms/org-b/protocol/openid-connect/certs",
+        "userInfoUrl": "http://localhost:8080/realms/org-b/protocol/openid-connect/userinfo",
+        "logoutUrl": "http://localhost:8080/realms/org-b/protocol/openid-connect/logout",
+        "issuer": "http://localhost:8080/realms/org-b",
+        "useJwksUrl": "true",
+        "clientAuthMethod": "client_secret_post",
+        "defaultScope": "openid profile email",
+        "syncMode": "FORCE",
+        "hideOnLoginPage": "false",
+        "backchannelSupported": "false",
+        "kc.org.domain": "orgb.example",
+        "kc.org.broker.redirect.mode.email-matches": "true"
+      }
+    },
+    {
+      "alias": "org-c",
+      "displayName": "Org-C",
+      "providerId": "oidc",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "umbrella-broker",
+        "clientSecret": "broker-org-c-secret",
+        "authorizationUrl": "http://localhost:8080/realms/org-c/protocol/openid-connect/auth",
+        "tokenUrl": "http://localhost:8080/realms/org-c/protocol/openid-connect/token",
+        "jwksUrl": "http://localhost:8080/realms/org-c/protocol/openid-connect/certs",
+        "userInfoUrl": "http://localhost:8080/realms/org-c/protocol/openid-connect/userinfo",
+        "logoutUrl": "http://localhost:8080/realms/org-c/protocol/openid-connect/logout",
+        "issuer": "http://localhost:8080/realms/org-c",
+        "useJwksUrl": "true",
+        "clientAuthMethod": "client_secret_post",
+        "defaultScope": "openid profile email",
+        "syncMode": "FORCE",
+        "hideOnLoginPage": "false",
+        "backchannelSupported": "false",
+        "kc.org.domain": "orgc.example",
+        "kc.org.broker.redirect.mode.email-matches": "true"
+      }
+    },
+    {
+      "alias": "org-d",
+      "displayName": "Org-D",
+      "providerId": "oidc",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "umbrella-broker",
+        "clientSecret": "broker-org-d-secret",
+        "authorizationUrl": "http://localhost:8080/realms/org-d/protocol/openid-connect/auth",
+        "tokenUrl": "http://localhost:8080/realms/org-d/protocol/openid-connect/token",
+        "jwksUrl": "http://localhost:8080/realms/org-d/protocol/openid-connect/certs",
+        "userInfoUrl": "http://localhost:8080/realms/org-d/protocol/openid-connect/userinfo",
+        "logoutUrl": "http://localhost:8080/realms/org-d/protocol/openid-connect/logout",
+        "issuer": "http://localhost:8080/realms/org-d",
+        "useJwksUrl": "true",
+        "clientAuthMethod": "client_secret_post",
+        "defaultScope": "openid profile email",
+        "syncMode": "FORCE",
+        "hideOnLoginPage": "false",
+        "backchannelSupported": "false",
+        "kc.org.domain": "orgd.example",
+        "kc.org.broker.redirect.mode.email-matches": "true"
+      }
+    },
+    {
+      "alias": "org-e",
+      "displayName": "Org-E",
+      "providerId": "oidc",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "umbrella-broker",
+        "clientSecret": "broker-org-e-secret",
+        "authorizationUrl": "http://localhost:8080/realms/org-e/protocol/openid-connect/auth",
+        "tokenUrl": "http://localhost:8080/realms/org-e/protocol/openid-connect/token",
+        "jwksUrl": "http://localhost:8080/realms/org-e/protocol/openid-connect/certs",
+        "userInfoUrl": "http://localhost:8080/realms/org-e/protocol/openid-connect/userinfo",
+        "logoutUrl": "http://localhost:8080/realms/org-e/protocol/openid-connect/logout",
+        "issuer": "http://localhost:8080/realms/org-e",
+        "useJwksUrl": "true",
+        "clientAuthMethod": "client_secret_post",
+        "defaultScope": "openid profile email",
+        "syncMode": "FORCE",
+        "hideOnLoginPage": "false",
+        "backchannelSupported": "false",
+        "kc.org.domain": "orge.example",
+        "kc.org.broker.redirect.mode.email-matches": "true"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "org-a-username-template",
+      "identityProviderAlias": "org-a",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "template": "${ALIAS}.${CLAIM.preferred_username}",
+        "target": "LOCAL",
+        "syncMode": "INHERIT"
+      }
+    },
+    {
+      "name": "org-a-entra-id",
+      "identityProviderAlias": "org-a",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "entra_id",
+        "user.attribute": "entra_id",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-a-group-officers",
+      "identityProviderAlias": "org-a",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"officers\"}]",
+        "group": "/officers",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-a-group-admins",
+      "identityProviderAlias": "org-a",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"admins\"}]",
+        "group": "/admins",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-b-username-template",
+      "identityProviderAlias": "org-b",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "template": "${ALIAS}.${CLAIM.preferred_username}",
+        "target": "LOCAL",
+        "syncMode": "INHERIT"
+      }
+    },
+    {
+      "name": "org-b-entra-id",
+      "identityProviderAlias": "org-b",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "entra_id",
+        "user.attribute": "entra_id",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-b-group-officers",
+      "identityProviderAlias": "org-b",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"officers\"}]",
+        "group": "/officers",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-b-group-admins",
+      "identityProviderAlias": "org-b",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"admins\"}]",
+        "group": "/admins",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-c-username-template",
+      "identityProviderAlias": "org-c",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "template": "${ALIAS}.${CLAIM.preferred_username}",
+        "target": "LOCAL",
+        "syncMode": "INHERIT"
+      }
+    },
+    {
+      "name": "org-c-entra-id",
+      "identityProviderAlias": "org-c",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "entra_id",
+        "user.attribute": "entra_id",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-c-group-officers",
+      "identityProviderAlias": "org-c",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"officers\"}]",
+        "group": "/officers",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-c-group-admins",
+      "identityProviderAlias": "org-c",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"admins\"}]",
+        "group": "/admins",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-d-username-template",
+      "identityProviderAlias": "org-d",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "template": "${ALIAS}.${CLAIM.preferred_username}",
+        "target": "LOCAL",
+        "syncMode": "INHERIT"
+      }
+    },
+    {
+      "name": "org-d-entra-id",
+      "identityProviderAlias": "org-d",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "entra_id",
+        "user.attribute": "entra_id",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-d-group-officers",
+      "identityProviderAlias": "org-d",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"officers\"}]",
+        "group": "/officers",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-d-group-admins",
+      "identityProviderAlias": "org-d",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"admins\"}]",
+        "group": "/admins",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-e-username-template",
+      "identityProviderAlias": "org-e",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "template": "${ALIAS}.${CLAIM.preferred_username}",
+        "target": "LOCAL",
+        "syncMode": "INHERIT"
+      }
+    },
+    {
+      "name": "org-e-entra-id",
+      "identityProviderAlias": "org-e",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "entra_id",
+        "user.attribute": "entra_id",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-e-group-officers",
+      "identityProviderAlias": "org-e",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"officers\"}]",
+        "group": "/officers",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    },
+    {
+      "name": "org-e-group-admins",
+      "identityProviderAlias": "org-e",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "claims": "[{\"key\":\"groups\",\"value\":\"admins\"}]",
+        "group": "/admins",
+        "are.claim.values.regex": "false",
+        "syncMode": "FORCE"
+      }
+    }
+  ],
+  "organizations": [
+    {
+      "name": "org-a",
+      "alias": "org-a",
+      "enabled": true,
+      "description": "Tenant Org-A",
+      "domains": [
+        {
+          "name": "orga.example",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "org-a"
+        }
+      ]
+    },
+    {
+      "name": "org-b",
+      "alias": "org-b",
+      "enabled": true,
+      "description": "Tenant Org-B",
+      "domains": [
+        {
+          "name": "orgb.example",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "org-b"
+        }
+      ]
+    },
+    {
+      "name": "org-c",
+      "alias": "org-c",
+      "enabled": true,
+      "description": "Tenant Org-C",
+      "domains": [
+        {
+          "name": "orgc.example",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "org-c"
+        }
+      ]
+    },
+    {
+      "name": "org-d",
+      "alias": "org-d",
+      "enabled": true,
+      "description": "Tenant Org-D",
+      "domains": [
+        {
+          "name": "orgd.example",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "org-d"
+        }
+      ]
+    },
+    {
+      "name": "org-e",
+      "alias": "org-e",
+      "enabled": true,
+      "description": "Tenant Org-E",
+      "domains": [
+        {
+          "name": "orge.example",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "org-e"
+        }
+      ]
+    }
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\": [{\"name\": \"username\", \"displayName\": \"${username}\", \"validations\": {\"length\": {\"min\": 3, \"max\": 255}, \"username-prohibited-characters\": {}, \"up-username-not-idn-homograph\": {}}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\", \"user\"]}, \"multivalued\": false}, {\"name\": \"email\", \"displayName\": \"${email}\", \"validations\": {\"email\": {}, \"length\": {\"max\": 255}}, \"required\": {\"roles\": [\"user\"]}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\", \"user\"]}, \"multivalued\": false}, {\"name\": \"firstName\", \"displayName\": \"${firstName}\", \"validations\": {\"length\": {\"max\": 255}, \"person-name-prohibited-characters\": {}}, \"required\": {\"roles\": [\"user\"]}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\", \"user\"]}, \"multivalued\": false}, {\"name\": \"lastName\", \"displayName\": \"${lastName}\", \"validations\": {\"length\": {\"max\": 255}, \"person-name-prohibited-characters\": {}}, \"required\": {\"roles\": [\"user\"]}, \"permissions\": {\"view\": [\"admin\", \"user\"], \"edit\": [\"admin\", \"user\"]}, \"multivalued\": false}], \"groups\": [{\"name\": \"user-metadata\", \"displayHeader\": \"User metadata\", \"displayDescription\": \"Attributes, which refer to user metadata\"}], \"unmanagedAttributePolicy\": \"ENABLED\"}"
+          ]
+        }
+      }
+    ]
+  }
+}

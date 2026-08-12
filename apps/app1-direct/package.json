@@ -1,0 +1,15 @@
+{
+  "name": "app1-direct",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Option A demo app - one confidential client per tenant realm",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

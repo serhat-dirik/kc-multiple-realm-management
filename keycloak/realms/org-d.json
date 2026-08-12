@@ -1,0 +1,150 @@
+{
+  "realm": "org-d",
+  "enabled": true,
+  "displayName": "Org-D",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Org-D</span></div>",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "groups": [
+    {
+      "name": "officers"
+    },
+    {
+      "name": "admins"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "app1-portal",
+      "name": "App 1 (Option A) - direct realm login",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "app1-org-d-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3001/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3001"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3001/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "umbrella-broker",
+      "name": "Umbrella realm brokering into this tenant",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "broker-org-d-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/realms/umbrella/broker/org-d/endpoint",
+        "http://localhost:8080/realms/umbrella/broker/org-d/endpoint/*"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "user-1",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-1@orgd.example",
+      "firstName": "User",
+      "lastName": "One",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user-1",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/officers"
+      ]
+    },
+    {
+      "username": "user-2",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-2@orgd.example",
+      "firstName": "User",
+      "lastName": "Two",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user-2",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/officers"
+      ]
+    },
+    {
+      "username": "user-3",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "user-3@orgd.example",
+      "firstName": "User",
+      "lastName": "Three",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user-3",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/admins"
+      ]
+    }
+  ],
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "passwordPolicy": "notEmail and passwordHistory(3)",
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6
+}

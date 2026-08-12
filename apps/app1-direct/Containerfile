@@ -1,0 +1,14 @@
+ARG NODE_VERSION=22-alpine
+FROM docker.io/library/node:${NODE_VERSION}
+
+WORKDIR /app
+
+# Dependencies are baked into the image; server.js is bind-mounted at runtime so
+# editing it on the host and restarting the container is enough - no rebuild.
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund
+
+COPY server.js ./
+
+EXPOSE 3001
+CMD ["node", "server.js"]

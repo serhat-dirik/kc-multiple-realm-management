@@ -1,0 +1,32 @@
+# Internal working notes and design documents — not part of the demo.
+docs/
+
+# Assistant and editor tooling artefacts. None exist in this repo today; they are
+# listed so a future session in this directory cannot add them by accident.
+.claude/
+.claude*/
+CLAUDE.md
+AGENTS.md
+.mcp.json
+.cursor/
+.aider*
+.github/copilot-instructions.md
+
+# Log dropped into the working directory by the Excalidraw MCP server on session
+# start. Nothing to do with this demo; it reappears on its own.
+excalidraw.log
+*.log
+
+# Only present if someone runs npm install on the host. The apps build their
+# dependencies inside their containers, so this is never needed.
+node_modules/
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Note: .env is intentionally NOT ignored. It pins component versions and holds
+# no secrets — the demo's client secrets are readable literals in the realm JSON
+# files, on purpose, so they are visible during a walkthrough.

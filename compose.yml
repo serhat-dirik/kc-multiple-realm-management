@@ -1,0 +1,94 @@
+services:
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak}:${KEYCLOAK_VERSION:-26.7.1}
+    container_name: kc-demo-keycloak
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
+      # Pin the issuer so tokens carry http://localhost:8080 no matter whether the
+      # request arrived from the browser (localhost) or from an app container
+      # (keycloak:8080). Without this the two paths mint different `iss` values.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_STRICT: "false"
+      # Keycloak logs nothing at info level for a successful login, which makes
+      # ./scripts/logs.sh useless for the one thing you want it for. Raising the
+      # events logger surfaces LOGIN, IDENTITY_PROVIDER_LOGIN, LOGIN_ERROR and
+      # the rest as they happen — the demo's whole story, narrated live.
+      KC_LOG_LEVEL: "info,org.keycloak.events:debug"
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import
+    # Readiness is polled from the host in scripts/start-kc.sh — the Keycloak
+    # image ships no curl or wget, so an in-container healthcheck is awkward.
+
+  lldap:
+    image: docker.io/lldap/lldap:${LLDAP_VERSION:-2026-08-10}
+    container_name: kc-demo-lldap
+    ports:
+      - "3890:3890"    # LDAP
+      - "17170:17170"  # web UI
+    environment:
+      # Demo values. Never use these anywhere real.
+      LLDAP_JWT_SECRET: demo-only-jwt-secret
+      LLDAP_KEY_SEED: demo-only-key-seed
+      LLDAP_LDAP_BASE_DN: "dc=orgb,dc=example"
+      LLDAP_LDAP_USER_DN: "admin"
+      # lldap hard-fails on passwords under 8 characters, so plain "admin"
+      # cannot be used here however much we would like it to be.
+      LLDAP_LDAP_USER_PASS: "adminadmin"
+      LLDAP_VERBOSE: "false"
+    volumes:
+      - lldap_data:/data
+
+  app1:
+    build:
+      context: ./apps/app1-direct
+      dockerfile: Containerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22-alpine}
+    image: kc-demo-app1
+    container_name: kc-demo-app1
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      APP_URL: http://localhost:3001
+      # The browser is redirected to localhost; this container reaches the same
+      # Keycloak over the compose network. KC_HOSTNAME pins the issuer so both
+      # paths agree on `iss`.
+      KC_PUBLIC_URL: http://localhost:8080
+      KC_INTERNAL_URL: http://keycloak:8080
+    volumes:
+      - ./apps/app1-direct/server.js:/app/server.js:ro
+
+  app2:
+    build:
+      context: ./apps/app2-umbrella
+      dockerfile: Containerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22-alpine}
+    image: kc-demo-app2
+    container_name: kc-demo-app2
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: "3002"
+      APP_URL: http://localhost:3002
+      KC_PUBLIC_URL: http://localhost:8080
+      KC_INTERNAL_URL: http://keycloak:8080
+      KC_REALM: umbrella
+      KC_CLIENT_ID: app2-portal
+      KC_CLIENT_SECRET: app2-umbrella-secret
+    volumes:
+      - ./apps/app2-umbrella/server.js:/app/server.js:ro
+
+volumes:
+  lldap_data:
