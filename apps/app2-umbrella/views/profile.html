@@ -1,0 +1,44 @@
+<span class="badge">Option B · umbrella hub</span>
+<h1>Signed in{{orgHeading}}</h1>
+<p class="sub">App 2 sent no tenant hint. Keycloak decided where this login belonged.</p>
+
+<div class="card good">
+  <strong>App 2 holds 1 client secret and knows about 0 organisations.</strong><br>
+  Every claim below arrived through a single client on a single realm.
+</div>
+
+<div class="card">
+  <h2>How you got here</h2>
+  <table>{{routingRows}}</table>
+</div>
+
+<div class="card">
+  <h2>Who you are</h2>
+  <table>{{identityRows}}</table>
+</div>
+
+<div class="card">
+  <h2>Carried from your organisation's own directory</h2>
+  <table>{{directoryRows}}</table>
+</div>
+
+<div class="card">
+  <h2>Session</h2>
+  <table>{{sessionRows}}</table>
+</div>
+
+<details class="card">
+  <summary><strong>Raw tokens</strong></summary>
+  <p class="note" style="margin:.6rem 0">
+    These stay server-side. The browser holds only a session cookie.
+  </p>
+  <strong>ID token</strong>
+  <pre>{{idToken}}</pre>
+  <strong>Access token</strong>
+  <pre>{{accessToken}}</pre>
+</details>
+
+<form method="post" action="/logout"><button type="submit">Sign out</button></form>
+<p class="note" style="margin-top:.8rem">
+  Try the same person through <a href="http://localhost:3001">App 1</a> to see the Option A path.
+</p>

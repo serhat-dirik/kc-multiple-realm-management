@@ -1,17 +1,22 @@
 /**
  * App 1 — Option A: one realm per organisation, direct.
  *
- * This app talks to each tenant realm directly. That means it must hold a
- * confidential client and secret FOR EVERY TENANT. Adding tenant number six
- * means editing this file and redeploying.
+ * This app talks to each organisation's realm directly. That means it must hold
+ * a confidential client and secret FOR EVERY ORGANISATION. Adding organisation
+ * number six means editing this file and redeploying.
  *
- * The OIDC flow is hand-rolled rather than pulled from a library so the raw
- * protocol is visible: this is a teaching demo, and the redirects and the
- * back-channel token call are the point.
+ * Markup lives in views/, styling in public/style.css. Everything below is the
+ * OIDC flow, hand-rolled rather than pulled from a library so the redirects and
+ * the back-channel token call stay visible.
  */
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import session from 'express-session';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
 // Config
@@ -26,14 +31,14 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 const PORT = process.env.PORT || 3001;
 
 /**
- * Five tenants, five clients, five secrets. This list is the whole argument
- * against Option A at scale: with 150 organisations it has 150 entries.
+ * Five organisations, five clients, five secrets. This list is the whole
+ * argument against Option A at scale: with 150 organisations it has 150 entries.
  */
 const TENANTS = [
   { realm: 'org-a', label: 'Org-A', note: 'Local Keycloak users' },
   { realm: 'org-b', label: 'Org-B', note: 'LDAP federated (lldap)' },
   { realm: 'org-c', label: 'Org-C', note: 'OIDC federated (acme-corp-idp)' },
-  { realm: 'org-d', label: 'Org-D', note: 'Local users, own theme + password policy' },
+  { realm: 'org-d', label: 'Org-D', note: 'Local users, own password policy' },
   { realm: 'org-e', label: 'Org-E', note: 'Local Keycloak users' },
 ].map((t) => ({
   ...t,
@@ -42,6 +47,43 @@ const TENANTS = [
 }));
 
 const tenantFor = (realm) => TENANTS.find((t) => t.realm === realm);
+
+// ---------------------------------------------------------------------------
+// Templating
+//
+// Views are plain HTML with {{placeholder}} slots. Anything that needs a loop
+// or a condition is built here as a fragment and injected, which keeps the
+// markup readable and the logic in one place. No template engine needed.
+// ---------------------------------------------------------------------------
+
+const readView = (name) => fs.readFileSync(path.join(HERE, 'views', `${name}.html`), 'utf8');
+
+const VIEWS = {
+  layout: readView('layout'),
+  home: readView('home'),
+  profile: readView('profile'),
+  message: readView('message'),
+};
+
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+/** Replace every {{key}} in a template. Values are inserted verbatim, so
+ *  callers escape anything that came from a token. */
+const fill = (template, values) =>
+  template.replace(/\{\{(\w+)\}\}/g, (_, key) => (key in values ? values[key] : ''));
+
+const page = (view, title, values) =>
+  fill(VIEWS.layout, { title: esc(title), body: fill(VIEWS[view], values) });
+
+/** One row of a claims table: name, value, and why it is worth looking at. */
+const row = (claim, value, note) => `
+  <tr>
+    <th><code>${esc(claim)}</code></th>
+    <td><code class="val">${esc(value === undefined || value === null || value === '' ? '—' : value)}</code>
+      ${note ? `<div class="note">${note}</div>` : ''}</td>
+  </tr>`;
 
 // ---------------------------------------------------------------------------
 // OIDC helpers
@@ -69,65 +111,12 @@ const fmtDuration = (from, to) =>
   from && to ? `${Math.round((to - from) / 60)} min` : '—';
 
 // ---------------------------------------------------------------------------
-// Views
-// ---------------------------------------------------------------------------
-
-const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-
-const layout = (title, body) => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)}</title>
-<style>
-  :root { color-scheme: light dark; }
-  * { box-sizing: border-box; }
-  body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif;
-         margin: 0; padding: 2.5rem 1.5rem; display: flex; justify-content: center;
-         background: Canvas; color: CanvasText; }
-  main { width: 100%; max-width: 720px; }
-  .badge { display: inline-block; background: #b91c1c; color: #fff; font-weight: 700;
-           font-size: .7rem; letter-spacing: .09em; padding: .25rem .6rem;
-           border-radius: 3px; text-transform: uppercase; }
-  h1 { font-size: 1.6rem; margin: .8rem 0 .3rem; }
-  .sub { opacity: .7; margin: 0 0 1.8rem; }
-  .card { border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
-          border-radius: 9px; padding: 1.2rem 1.4rem; margin-bottom: 1.1rem; }
-  .warn { border-left: 4px solid #b91c1c;
-          background: color-mix(in srgb, #b91c1c 7%, transparent); }
-  label { display: block; font-weight: 600; margin-bottom: .45rem; }
-  select, button { font: inherit; padding: .6rem .8rem; border-radius: 6px;
-                   border: 1px solid color-mix(in srgb, CanvasText 30%, transparent);
-                   background: Canvas; color: CanvasText; }
-  button { background: #b91c1c; color: #fff; border: none; cursor: pointer;
-           font-weight: 600; }
-  button:hover { background: #991b1b; }
-  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
-  th, td { text-align: left; padding: .55rem .6rem; vertical-align: top;
-           border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent); }
-  th { font-weight: 600; opacity: .75; width: 30%; }
-  tr:last-child th, tr:last-child td { border-bottom: none; }
-  .val { word-break: break-all; font-weight: 600; }
-  .note { font-size: .81rem; opacity: .72; margin-top: .35rem; line-height: 1.5;
-          font-family: inherit; font-weight: 400; }
-  .note code { font-size: .78rem; opacity: .9; }
-  details > summary { cursor: pointer; user-select: none; }
-  details[open] > summary { margin-bottom: .6rem; }
-  h2 { font-size: 1rem; margin: 0 0 .5rem; }
-  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; }
-  pre { background: color-mix(in srgb, CanvasText 6%, transparent); padding: .9rem;
-        border-radius: 6px; overflow-x: auto; }
-  a { color: inherit; }
-  .row { display: flex; gap: .7rem; align-items: end; flex-wrap: wrap; }
-</style></head><body><main>${body}</main></body></html>`;
-
-// ---------------------------------------------------------------------------
 // App
 // ---------------------------------------------------------------------------
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(HERE, 'public')));
 app.use(
   session({
     secret: 'app1-demo-session-secret',
@@ -140,62 +129,37 @@ app.use(
 // Request log. Without this the app is silent and ./scripts/logs.sh shows
 // nothing during a login, which is exactly when you want to watch it.
 app.use((req, _res, next) => {
-  if (req.path !== '/healthz') {
+  if (req.path !== '/healthz' && req.path !== '/style.css') {
     const q = Object.keys(req.query).length ? ` ${JSON.stringify(req.query)}` : '';
     console.log(`${req.method} ${req.path}${q}`);
   }
   next();
 });
 
-app.get('/', (req, res) => {
-  const options = TENANTS.map(
-    (t) => `<option value="${esc(t.realm)}">${esc(t.label)} — ${esc(t.note)}</option>`,
-  ).join('');
-
-  res.send(
-    layout(
-      'App 1 — Option A',
-      `<span class="badge">Option A · realm per tenant</span>
-       <h1>App 1 — direct realm login</h1>
-       <p class="sub">This app authenticates against each tenant's own realm.</p>
-
-       <div class="card warn">
-         <strong>This app holds ${TENANTS.length} client secrets.</strong><br>
-         One confidential client is registered in every tenant realm. Onboarding
-         tenant ${TENANTS.length + 1} means a new client, a new secret, a config
-         change here and a redeploy.
-       </div>
-
-       <div class="card">
-         <form class="row" method="get" action="/login">
-           <div style="flex:1 1 320px">
-             <label for="realm">Choose your organisation</label>
-             <select id="realm" name="realm" style="width:100%">${options}</select>
-           </div>
-           <button type="submit">Sign in</button>
-         </form>
-       </div>
-
-       <div class="card">
-         <table>
-           <tr><th>Realm</th><th>Client</th><th>Secret held by this app</th></tr>
-           ${TENANTS.map(
-             (t) =>
-               `<tr><td><code>${esc(t.realm)}</code></td><td><code>${esc(t.clientId)}</code></td><td><code>${esc(t.clientSecret)}</code></td></tr>`,
-           ).join('')}
-         </table>
-       </div>`,
-    ),
-  );
+app.get('/', (_req, res) => {
+  res.send(page('home', 'App 1 — Option A', {
+    tenantCount: TENANTS.length,
+    nextTenant: TENANTS.length + 1,
+    options: TENANTS.map(
+      (t) => `<option value="${esc(t.realm)}">${esc(t.label)} — ${esc(t.note)}</option>`,
+    ).join(''),
+    secretRows: TENANTS.map(
+      (t) => `<tr><td><code>${esc(t.realm)}</code></td><td><code>${esc(t.clientId)}</code></td>` +
+             `<td><code>${esc(t.clientSecret)}</code></td></tr>`,
+    ).join(''),
+  }));
 });
 
 app.get('/login', (req, res) => {
   const tenant = tenantFor(req.query.realm);
-  if (!tenant) return res.status(400).send(layout('Error', '<h1>Unknown realm</h1>'));
+  if (!tenant) {
+    return res.status(400).send(page('message', 'Error', {
+      heading: 'Unknown realm', detail: esc(String(req.query.realm)),
+    }));
+  }
 
   const verifier = newVerifier();
   const state = b64url(crypto.randomBytes(16));
-
   req.session.pkce = { verifier, state, realm: tenant.realm };
 
   const url = new URL(`${KC_PUBLIC}/realms/${tenant.realm}/protocol/openid-connect/auth`);
@@ -215,12 +179,14 @@ app.get('/callback', async (req, res) => {
   const { code, state, error, error_description: errorDescription } = req.query;
 
   if (error) {
-    return res
-      .status(400)
-      .send(layout('Login failed', `<h1>Login failed</h1><pre>${esc(errorDescription || error)}</pre><p><a href="/">Back</a></p>`));
+    return res.status(400).send(page('message', 'Login failed', {
+      heading: 'Login failed', detail: esc(errorDescription || error),
+    }));
   }
   if (!pkce || state !== pkce.state) {
-    return res.status(400).send(layout('Error', '<h1>Bad state</h1><p><a href="/">Back</a></p>'));
+    return res.status(400).send(page('message', 'Error', {
+      heading: 'Bad state', detail: 'The login response did not match this session.',
+    }));
   }
 
   const tenant = tenantFor(pkce.realm);
@@ -244,10 +210,11 @@ app.get('/callback', async (req, res) => {
 
   const tokens = await tokenRes.json();
   console.log(`  back-channel token exchange -> ${tokenRes.status}`);
+
   if (!tokenRes.ok) {
-    return res
-      .status(502)
-      .send(layout('Token error', `<h1>Token exchange failed</h1><pre>${esc(JSON.stringify(tokens, null, 2))}</pre><p><a href="/">Back</a></p>`));
+    return res.status(502).send(page('message', 'Token error', {
+      heading: 'Token exchange failed', detail: esc(JSON.stringify(tokens, null, 2)),
+    }));
   }
 
   req.session.user = {
@@ -260,14 +227,6 @@ app.get('/callback', async (req, res) => {
   res.redirect('/profile');
 });
 
-/** One row of the claims tables: name, value, and why it is worth looking at. */
-const row = (claim, value, note) => `
-  <tr>
-    <th><code>${esc(claim)}</code></th>
-    <td><code class="val">${esc(value === undefined || value === null || value === '' ? '—' : value)}</code>
-      ${note ? `<div class="note">${note}</div>` : ''}</td>
-  </tr>`;
-
 app.get('/profile', (req, res) => {
   const user = req.session.user;
   if (!user) return res.redirect('/');
@@ -276,71 +235,40 @@ app.get('/profile', (req, res) => {
   const tenant = tenantFor(user.realm);
   const groups = Array.isArray(c.groups) ? c.groups.join(', ') : c.groups;
 
-  res.send(
-    layout(
-      'App 1 — signed in',
-      `<span class="badge">Option A · realm per organisation</span>
-       <h1>Signed in directly against <code>${esc(user.realm)}</code></h1>
-       <p class="sub">${esc(tenant?.note || '')}</p>
+  res.send(page('profile', 'App 1 — signed in', {
+    realm: esc(user.realm),
+    note: esc(tenant?.note || ''),
+    tenantCount: TENANTS.length,
+    clientId: esc(tenant?.clientId),
+    clientSecret: esc(tenant?.clientSecret),
 
-       <div class="card warn">
-         <strong>This login used 1 of the ${TENANTS.length} client secrets this app holds.</strong><br>
-         Client <code>${esc(tenant?.clientId)}</code> · secret <code>${esc(tenant?.clientSecret)}</code>,
-         registered inside realm <code>${esc(user.realm)}</code>. Every organisation needs its own pair.
-       </div>
+    originRows:
+      row('iss', c.iss,
+        'The organisation’s own realm issued this token. App 1 contacted it directly — there is no hub in this path.') +
+      row('aud', Array.isArray(c.aud) ? c.aud.join(', ') : c.aud) +
+      row('organization', c.organization,
+        'Absent by design. Organizations live in the umbrella hub, which this path never touches — App 1 already knows which realm it asked.'),
 
-       <div class="card">
-         <h2>Where this token came from</h2>
-         <table>
-           ${row('iss', c.iss,
-             'The organisation’s own realm issued this token. App 1 contacted it directly — there is no hub in this path.')}
-           ${row('aud', Array.isArray(c.aud) ? c.aud.join(', ') : c.aud)}
-           ${row('organization', c.organization,
-             'Absent by design. Organizations live in the umbrella hub, which this path never touches — App 1 already knows which realm it asked.')}
-         </table>
-       </div>
+    identityRows:
+      row('preferred_username', c.preferred_username,
+        'The raw username from this organisation’s own directory — no namespacing, because there is no hub here for names to collide in.') +
+      row('name', c.name) +
+      row('email', c.email) +
+      row('sub', c.sub,
+        'This organisation’s identifier for you. The umbrella would assign a different one.'),
 
-       <div class="card">
-         <h2>Who you are</h2>
-         <table>
-           ${row('preferred_username', c.preferred_username,
-             'The raw username from this organisation’s own directory — no namespacing, because there is no hub here for names to collide in.')}
-           ${row('name', c.name)}
-           ${row('email', c.email)}
-           ${row('sub', c.sub, 'This organisation’s identifier for you. The umbrella would assign a different one.')}
-         </table>
-       </div>
+    directoryRows:
+      row('groups', groups, 'Group membership, mapped straight out of this realm.') +
+      row('entra_id', c.entra_id, c.entra_id
+        ? 'A stable directory identifier, one hop away — straight from the organisation’s own store.'
+        : 'Not set — this organisation manages users locally and has no external directory to source it from.'),
 
-       <div class="card">
-         <h2>From the organisation’s directory</h2>
-         <table>
-           ${row('groups', groups, 'Group membership, mapped straight out of this realm.')}
-           ${row('entra_id', c.entra_id, c.entra_id
-             ? 'A stable directory identifier, one hop away — straight from the organisation’s own store.'
-             : 'Not set — this organisation manages users locally and has no external directory to source it from.')}
-         </table>
-       </div>
+    sessionRows:
+      row('issued at', fmtTime(c.iat)) +
+      row('expires', `${fmtTime(c.exp)} (${fmtDuration(c.iat, c.exp)})`),
 
-       <div class="card">
-         <h2>Session</h2>
-         <table>
-           ${row('issued at', fmtTime(c.iat))}
-           ${row('expires', `${fmtTime(c.exp)} (${fmtDuration(c.iat, c.exp)})`)}
-         </table>
-       </div>
-
-       <details class="card">
-         <summary><strong>Raw ID token claims</strong></summary>
-         <p class="note" style="margin:.6rem 0">Kept server-side. The browser holds only a session cookie.</p>
-         <pre>${esc(JSON.stringify(c, null, 2))}</pre>
-       </details>
-
-       <form method="post" action="/logout"><button type="submit">Sign out</button></form>
-       <p class="note" style="margin-top:.8rem">
-         Now try the same person through <a href="http://localhost:3002">App 2</a> — same identity, one secret, no dropdown.
-       </p>`,
-    ),
-  );
+    idToken: esc(JSON.stringify(c, null, 2)),
+  }));
 });
 
 /**

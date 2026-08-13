@@ -3,12 +3,14 @@ FROM docker.io/library/node:${NODE_VERSION}
 
 WORKDIR /app
 
-# Dependencies are baked into the image; server.js is bind-mounted at runtime so
-# editing it on the host and restarting the container is enough - no rebuild.
+# Dependencies are baked into the image. Source, views and styles are bind-
+# mounted at runtime, so editing them on the host and restarting the container
+# is enough - no rebuild.
 COPY package.json ./
 RUN npm install --omit=dev --no-audit --no-fund
 
 COPY server.js ./
+COPY views ./views
+COPY public ./public
 
-EXPOSE 3002
 CMD ["node", "server.js"]

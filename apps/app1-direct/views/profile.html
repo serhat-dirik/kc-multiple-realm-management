@@ -1,0 +1,43 @@
+<span class="badge">Option A · realm per organisation</span>
+<h1>Signed in directly against <code>{{realm}}</code></h1>
+<p class="sub">{{note}}</p>
+
+<div class="card warn">
+  <strong>This login used 1 of the {{tenantCount}} client secrets this app holds.</strong><br>
+  Client <code>{{clientId}}</code> · secret <code>{{clientSecret}}</code>, registered
+  inside realm <code>{{realm}}</code>. Every organisation needs its own pair.
+</div>
+
+<div class="card">
+  <h2>Where this token came from</h2>
+  <table>{{originRows}}</table>
+</div>
+
+<div class="card">
+  <h2>Who you are</h2>
+  <table>{{identityRows}}</table>
+</div>
+
+<div class="card">
+  <h2>From the organisation's directory</h2>
+  <table>{{directoryRows}}</table>
+</div>
+
+<div class="card">
+  <h2>Session</h2>
+  <table>{{sessionRows}}</table>
+</div>
+
+<details class="card">
+  <summary><strong>Raw ID token claims</strong></summary>
+  <p class="note" style="margin:.6rem 0">
+    Kept server-side. The browser holds only a session cookie.
+  </p>
+  <pre>{{idToken}}</pre>
+</details>
+
+<form method="post" action="/logout"><button type="submit">Sign out</button></form>
+<p class="note" style="margin-top:.8rem">
+  Now try the same person through <a href="http://localhost:3002">App 2</a> —
+  same identity, one secret, no dropdown.
+</p>

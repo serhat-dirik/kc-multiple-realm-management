@@ -68,6 +68,8 @@ services:
       KC_INTERNAL_URL: http://keycloak:8080
     volumes:
       - ./apps/app1-direct/server.js:/app/server.js:ro
+      - ./apps/app1-direct/views:/app/views:ro
+      - ./apps/app1-direct/public:/app/public:ro
 
   app2:
     build:
@@ -89,6 +91,8 @@ services:
       KC_CLIENT_SECRET: app2-umbrella-secret
     volumes:
       - ./apps/app2-umbrella/server.js:/app/server.js:ro
+      - ./apps/app2-umbrella/views:/app/views:ro
+      - ./apps/app2-umbrella/public:/app/public:ro
 
 volumes:
   lldap_data:

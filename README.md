@@ -477,6 +477,9 @@ compose.yml                 keycloak · lldap · app1 · app2
 keycloak/realms/*.json      all 7 realms, imported at startup
 apps/app1-direct/           Express BFF, 5 confidential clients
 apps/app2-umbrella/         Express BFF, 1 confidential client
+  server.js                 the OIDC flow, and nothing else
+  views/*.html              page markup with {{placeholder}} slots
+  public/style.css          styling
 scripts/                    start / stop / reset / verify / add-org
 ```
 
@@ -485,7 +488,14 @@ authorization code verifier stay server-side, and Keycloak tokens never reach th
 browser. The OIDC flow is hand-rolled rather than pulled from a library so the
 redirects and the back-channel token call are readable.
 
-`server.js` is bind-mounted, so editing an app needs only a restart:
+Markup is kept out of the server: `views/*.html` hold the pages with simple
+`{{placeholder}}` slots, `public/style.css` holds the styling, and `server.js`
+fills the slots. Fragments that need a loop or a condition — table rows, the
+realm dropdown — are built in JS and injected, so there is no template engine to
+learn.
+
+`server.js`, `views/` and `public/` are all bind-mounted, so editing any of them
+needs only a restart:
 
 ```bash
 podman restart kc-demo-app2

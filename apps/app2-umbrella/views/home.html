@@ -1,0 +1,35 @@
+<span class="badge">Option B · umbrella hub</span>
+<h1>App 2 — umbrella login</h1>
+<p class="sub">This app talks to one realm and knows nothing about tenants.</p>
+
+<div class="card good">
+  <strong>This app holds 1 client secret and contains no tenant list.</strong><br>
+  Onboarding organisation six is a Keycloak change only — no config here, no redeploy.
+</div>
+
+<div class="card">
+  <h2>Path 1 — identity-first (no hint)</h2>
+  <p class="sub" style="margin:0 0 .9rem">
+    Keycloak asks for an email, matches its domain to an Organization and routes
+    to that organisation's realm. Try <code>j.smith@orgb.example</code>.
+  </p>
+  <form method="get" action="/login"><button type="submit">Sign in</button></form>
+</div>
+
+<div class="card">
+  <h2>Path 2 — kc_idp_hint (organisation already resolved)</h2>
+  <p class="sub" style="margin:0 0 .3rem">
+    Simulates the case where a tenant subdomain identified the organisation, so
+    the identity provider selection screen is skipped entirely.
+  </p>
+  <div class="hints">{{hints}}</div>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Realm</th><td><code>{{realm}}</code></td></tr>
+    <tr><th>Client</th><td><code>{{clientId}}</code></td></tr>
+    <tr><th>Secrets held</th><td><code>1</code></td></tr>
+    <tr><th>Organisations hardcoded</th><td><code>0</code></td></tr>
+  </table>
+</div>

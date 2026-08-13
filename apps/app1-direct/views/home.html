@@ -1,0 +1,27 @@
+<span class="badge">Option A · realm per organisation</span>
+<h1>App 1 — direct realm login</h1>
+<p class="sub">This app authenticates against each organisation's own realm.</p>
+
+<div class="card warn">
+  <strong>This app holds {{tenantCount}} client secrets.</strong><br>
+  One confidential client is registered in every organisation's realm. Onboarding
+  organisation {{nextTenant}} means a new client, a new secret, a config change
+  here and a redeploy.
+</div>
+
+<div class="card">
+  <form class="row" method="get" action="/login">
+    <div style="flex:1 1 320px">
+      <label for="realm">Choose your organisation</label>
+      <select id="realm" name="realm" style="width:100%">{{options}}</select>
+    </div>
+    <button type="submit">Sign in</button>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Realm</th><th>Client</th><th>Secret held by this app</th></tr>
+    {{secretRows}}
+  </table>
+</div>
